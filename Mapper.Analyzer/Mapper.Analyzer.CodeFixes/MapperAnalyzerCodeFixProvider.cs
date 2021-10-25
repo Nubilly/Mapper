@@ -1,12 +1,8 @@
 ﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Rename;
-using Microsoft.CodeAnalysis.Text;
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -20,7 +16,7 @@ namespace Mapper.Analyzer
     {
         public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
-            get { return ImmutableArray.Create(MapperAnalyzerAnalyzer.DiagnosticId); }
+            get { return ImmutableArray.Create(MapperAnalyzer.DiagnosticId); }
         }
 
         public sealed override FixAllProvider GetFixAllProvider()
@@ -41,12 +37,12 @@ namespace Mapper.Analyzer
             var declaration = root.FindToken(diagnosticSpan.Start).Parent.AncestorsAndSelf().OfType<TypeDeclarationSyntax>().First();
 
             // Register a code action that will invoke the fix.
-            context.RegisterCodeFix(
-                CodeAction.Create(
-                    title: CodeFixResources.CreateMapper,
-                    createChangedSolution: c => CreateMapper(context.Document, declaration, c),
-                    equivalenceKey: nameof(CodeFixResources.CreateMapper)),
-                diagnostic);
+            //context.RegisterCodeFix(
+            //    CodeAction.Create(
+            //        title: CodeFixResources.CreateMapper,
+            //        createChangedSolution: c => CreateMapper(context.Document, declaration, c),
+            //        equivalenceKey: nameof(CodeFixResources.CreateMapper)),
+            //    diagnostic);
         }
 
         private async Task<Solution> MakeUppercaseAsync(Document document, TypeDeclarationSyntax typeDecl, CancellationToken cancellationToken)
@@ -62,7 +58,7 @@ namespace Mapper.Analyzer
             // Produce a new solution that has all references to that type renamed, including the declaration.
             var originalSolution = document.Project.Solution;
             var optionSet = originalSolution.Workspace.Options;
-            var newSolution = await Renamer.RenameSymbolAsync(document.Project.Solution, typeSymbol, newName, optionSet, cancellationToken).ConfigureAwait(false);
+            var newSolution = await Renamer.RenameSymbolAsync(document.Project.Solution, typeSymbol, newName, optionSet, cancellationToken);
 
             // Return the new solution with the now-uppercase type name.
             return newSolution;
@@ -70,7 +66,7 @@ namespace Mapper.Analyzer
 
         private async Task<Solution> CreateMapper(Document document, TypeDeclarationSyntax typeDecl, CancellationToken cancellationToken)
         {
-            new Microsoft.CodeAnalysis.AdditionalDocument().
+            
            // Compute new uppercase name.
            var identifierToken = typeDecl.Identifier;
             var newName = identifierToken.Text.ToUpperInvariant();
@@ -82,7 +78,7 @@ namespace Mapper.Analyzer
             // Produce a new solution that has all references to that type renamed, including the declaration.
             var originalSolution = document.Project.Solution;
             var optionSet = originalSolution.Workspace.Options;
-            var newSolution = await Renamer.RenameSymbolAsync(document.Project.Solution, typeSymbol, newName, optionSet, cancellationToken).ConfigureAwait(false);
+            var newSolution = await Renamer.RenameSymbolAsync(document.Project.Solution, typeSymbol, newName, optionSet, cancellationToken);
 
             // Return the new solution with the now-uppercase type name.
             return newSolution;

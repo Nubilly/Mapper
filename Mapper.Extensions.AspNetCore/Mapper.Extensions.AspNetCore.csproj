@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <nullable>enable</nullable>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>6.0.0-rc.1.21451.13</Version>
+    <Description>AspNetCore Dependancy Injection - Generic Mapper to Map one or more objects to another object</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Mapper\Mapper.csproj" />
+  </ItemGroup>
+
+</Project>

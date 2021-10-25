@@ -1,7 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Threading.Tasks;
 using VerifyCS = Mapper.Analyzer.Test.CSharpCodeFixVerifier<
-    Mapper.Analyzer.MapperAnalyzerAnalyzer,
+    Mapper.Analyzer.MapperAnalyzer,
     Mapper.Analyzer.MapperAnalyzerCodeFixProvider>;
 
 namespace Mapper.Analyzer.Test

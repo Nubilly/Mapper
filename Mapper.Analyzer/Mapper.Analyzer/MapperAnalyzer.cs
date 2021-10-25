@@ -2,16 +2,13 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
 
 namespace Mapper.Analyzer
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class MapperAnalyzerAnalyzer : DiagnosticAnalyzer
+    public class MapperAnalyzer : DiagnosticAnalyzer
     {
         public const string DiagnosticId = "MapperAnalyzer";
 
@@ -22,7 +19,7 @@ namespace Mapper.Analyzer
         private static readonly LocalizableString Description = new LocalizableResourceString(nameof(Resources.AnalyzerDescription), Resources.ResourceManager, typeof(Resources));
         private const string Category = "Naming";
 
-        private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Warning, isEnabledByDefault: true, description: Description);
+        private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Error, isEnabledByDefault: true, description: Description);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(Rule); } }
 
@@ -33,22 +30,32 @@ namespace Mapper.Analyzer
 
             // TODO: Consider registering other actions that act on syntax instead of or in addition to symbols
             // See https://github.com/dotnet/roslyn/blob/main/docs/analyzers/Analyzer%20Actions%20Semantics.md for more information
-            context.RegisterCodeBlockAction(AnalyzeMissingMappers);
+            context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.GenericName);
         }
 
-        private static void AnalyzeSymbol(SymbolAnalysisContext context)
+        private static void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
-            // TODO: Replace the following code with your own analysis, generating Diagnostic objects for any issues you find
-            var namedTypeSymbol = (INamedTypeSymbol)context.Symbol;
+            var genericMapper = (GenericNameSyntax)context.Node;
 
-            // Find just those named type symbols with names containing lowercase letters.
-            if (namedTypeSymbol.Name.ToCharArray().Any(char.IsLower))
+            if (genericMapper.Identifier.Text == "Map" || genericMapper.Identifier.Text == "MapAsync")
             {
                 // For all such symbols, produce a diagnostic.
-                var diagnostic = Diagnostic.Create(Rule, namedTypeSymbol.Locations[0], namedTypeSymbol.Name);
+                var diagnostic = Diagnostic.Create(Rule, genericMapper.GetLocation());
 
                 context.ReportDiagnostic(diagnostic);
             }
+
+            //// TODO: Replace the following code with your own analysis, generating Diagnostic objects for any issues you find
+            //var namedTypeSymbol = (INamedTypeSymbol)context.Symbol;
+
+            //// Find just those named type symbols with names containing lowercase letters.
+            //if (namedTypeSymbol.Name.ToCharArray().Any(char.IsLower))
+            //{
+            //    // For all such symbols, produce a diagnostic.
+            //    var diagnostic = Diagnostic.Create(Rule, namedTypeSymbol.Locations[0], namedTypeSymbol.Name);
+
+            //    context.ReportDiagnostic(diagnostic);
+            //}
         }
 
         private static void AnalyzeMissingMappers(CodeBlockAnalysisContext codeBlockContext)
@@ -61,14 +68,14 @@ namespace Mapper.Analyzer
 
             // Report diagnostic for void non-virtual methods with empty method bodies.
             IMethodSymbol method = (IMethodSymbol)codeBlockContext.OwningSymbol;
-            BlockSyntax block = (BlockSyntax)codeBlockContext.CodeBlock.ChildNodes().FirstOrDefault(n => n.Kind() == SyntaxKind.Block);
-            if (method. && !method.IsVirtual && block != null && block.Statements.Count == 0)
-            {
-                SyntaxTree tree = block.SyntaxTree;
-                Location location = method.Locations.First(l => tree.Equals(l.SourceTree));
-                Diagnostic diagnostic = Diagnostic.Create(Rule, location, method.Name);
-                codeBlockContext.ReportDiagnostic(diagnostic);
-            }
+            BlockSyntax block = (BlockSyntax)codeBlockContext.CodeBlock.ChildNodes().FirstOrDefault(n => n.IsKind(SyntaxKind.Block));
+            //if (method. && !method.IsVirtual && block != null && block.Statements.Count == 0)
+            //{
+            //    SyntaxTree tree = block.SyntaxTree;
+            //    Location location = method.Locations.First(l => tree.Equals(l.SourceTree));
+            //    Diagnostic diagnostic = Diagnostic.Create(Rule, location, method.Name);
+            //    codeBlockContext.ReportDiagnostic(diagnostic);
+            //}
         }
     }
 }

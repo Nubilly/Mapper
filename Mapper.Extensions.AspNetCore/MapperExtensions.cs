@@ -1,27 +1,11 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 
 namespace Mapper
 {
     public static class MapperExtensions
-    {
-        private static IEnumerable<Type> ExportedTypes(Assembly assembly)
-        {
-            try
-            {
-                return assembly.ExportedTypes.ToList();
-            }
-            catch (ArgumentException)
-            {
-                // security, trust or access error loading assembly
-            }
-            return new List<Type>();
-        }
-
+    {      
         public static IServiceCollection AddMapper(this IServiceCollection services)
         {
             var mappers = AppDomain.CurrentDomain.GetAssemblies().Where(x => !x.IsDynamic).SelectMany(x => ExportedTypes(x).Where(t => t.IsClass && !t.IsGenericTypeDefinition && t.GetInterfaces().Any(i => i.IsGenericType
@@ -61,7 +45,21 @@ namespace Mapper
             }
             
             services.TryAddScoped<IMapperFactory, MapperFactory>();
+
             return services;
-        }       
+        }
+
+        private static IEnumerable<Type> ExportedTypes(Assembly assembly)
+        {
+            try
+            {
+                return assembly.ExportedTypes;
+            }
+            catch (ArgumentException)
+            {
+                // security, trust or access error loading assembly
+            }
+            return new List<Type>();
+        }
     }
 }
